@@ -1,40 +1,37 @@
 #!/usr/bin/env python3
-"""
-Authentication module
-"""
-
+""" create auth class """
 from flask import request
-import re
 from typing import List, TypeVar
+import re
 
 
-class Auth():
-    """Authentication class"""
-
+class Auth:
+    """ manage the API authentication """
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """Check if path requires authentication"""
-        if not path or not excluded_paths:
-            return True
-        for ex_path in excluded_paths:
-            if ex_path[-1] == '*':
-                pat = ex_path.split('*')
-                pat = pat[0] + '.*'
-                match = re.search(pat, path)
-                if match:
+        """ require auth """
+        for i in excluded_paths:
+            if i[-1] == '*':
+                pattern = r"^(.*)\*"
+                match = re.match(pattern, i)
+                part_without_star = match.group(1)
+                if path.startswith(part_without_star):
                     return False
-        if path[-1] != '/':
+                else:
+                    return True
+        if path and path[-1] != '/':
             path = path + '/'
-        if path in excluded_paths:
-            return False
-        else:
+        if (excluded_paths is None or
+                path is None or
+                path not in excluded_paths):
             return True
+        return False
 
     def authorization_header(self, request=None) -> str:
-        """Authorization header"""
-        if not request:
-            return None
-        return request.headers.get('Authorization')
+        """ authorization header """
+        if request is not None:
+            return request.headers.get('Authorization')
+        return None
 
     def current_user(self, request=None) -> TypeVar('User'):
-        """Current user"""
+        """ current user """
         return None
